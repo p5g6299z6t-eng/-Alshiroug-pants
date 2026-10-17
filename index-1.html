@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>كتابك | متجر الكتب</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Tahoma, Arial, sans-serif; background: #f5f7fb; color: #222; }
+        header { background: #173b35; color: white; padding: 20px; text-align: center; }
+        header h1 { font-size: 30px; margin-bottom: 8px; }
+        nav { background: #102d28; padding: 12px; text-align: center; }
+        nav a { color: white; text-decoration: none; margin: 0 12px; font-size: 15px; }
+        .hero { background: #dcece6; text-align: center; padding: 45px 15px; }
+        .hero h2 { color: #173b35; font-size: 28px; margin-bottom: 12px; }
+        .hero p { margin-bottom: 20px; }
+        .search-box { width: 90%; max-width: 450px; padding: 13px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; }
+        .container { max-width: 1100px; margin: 30px auto; padding: 0 15px; }
+        .section-title { text-align: center; margin-bottom: 25px; color: #173b35; }
+        .books { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
+        .book { background: white; border-radius: 12px; padding: 18px; text-align: center; box-shadow: 0 3px 12px #00000010; }
+        .book-cover { height: 150px; background: #e5eee9; border-radius: 8px; display: flex; justify-content: center; align-items: center; font-size: 60px; margin-bottom: 15px; }
+        .book h3 { margin-bottom: 10px; }
+        .book p { color: #666; margin-bottom: 12px; font-size: 14px; }
+        .price { color: #16804a; font-size: 20px; font-weight: bold; margin-bottom: 15px; }
+        button { border: none; border-radius: 7px; padding: 11px 15px; cursor: pointer; font-size: 15px; }
+        .add-btn { background: #176b50; color: white; width: 100%; }
+        .add-btn:hover { background: #104b39; }
+        .cart { background: white; padding: 22px; margin-top: 35px; border-radius: 12px; box-shadow: 0 3px 12px #00000010; }
+        .cart h2 { color: #173b35; margin-bottom: 18px; }
+        .cart-item { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 0; border-bottom: 1px solid #eee; }
+        .remove-btn { background: #ffe3e3; color: #b42318; padding: 7px 10px; }
+        .total { font-size: 20px; font-weight: bold; margin: 20px 0; }
+        .order-btn { background: #16804a; color: white; width: 100%; }
+        .empty { color: #777; padding: 10px 0; }
+        footer { background: #173b35; color: white; text-align: center; padding: 22px; margin-top: 40px; }
+        @media (max-width: 500px) {
+            header h1 { font-size: 25px; }
+            .hero h2 { font-size: 23px; }
+            nav a { margin: 0 6px; }
+            .cart-item { flex-wrap: wrap; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>📚 كتابك</h1>
+        <p>عالم من المعرفة بين يديك</p>
+    </header>
+
+    <nav>
+        <a href="#home">الرئيسية</a>
+        <a href="#books">الكتب</a>
+        <a href="#cart">سلة المشتريات</a>
+    </nav>
+
+    <section class="hero" id="home">
+        <h2>اكتشف كتابك القادم</h2>
+        <p>تصفح الكتب واختر ما يناسب اهتماماتك.</p>
+        <input type="search" id="search" class="search-box"
+               placeholder="ابحث عن اسم الكتاب..." oninput="searchBooks()">
+    </section>
+
+    <main class="container">
+        <section id="books">
+            <h2 class="section-title">📖 الكتب المتاحة</h2>
+            <div class="books" id="books-list"></div>
+        </section>
+
+        <section class="cart" id="cart">
+            <h2>🛒 سلة المشتريات</h2>
+            <div id="cart-items"><p class="empty">السلة فارغة حالياً.</p></div>
+            <div class="total">الإجمالي: <span id="total">0</span> جنيه</div>
+            <button class="order-btn" onclick="orderBooks()">اطلب الكتب عبر واتساب</button>
+        </section>
+    </main>
+
+    <footer><p>© 2026 كتابك - جميع الحقوق محفوظة</p></footer>
+
+    <script>
+        // يمكنك تعديل أسماء الكتب وأسعارها من هنا
+        const books = [
+            { id: 1, title: "فن التفكير", description: "كتاب يساعدك على تطوير طريقة تفكيرك.", price: 5000, icon: "🧠" },
+            { id: 2, title: "رحلة إلى النجاح", description: "خطوات عملية لتطوير الذات وتحقيق الأهداف.", price: 6500, icon: "🚀" },
+            { id: 3, title: "أساسيات البرمجة", description: "مدخل مبسط إلى عالم البرمجة.", price: 8000, icon: "💻" },
+            { id: 4, title: "عالم العلوم", description: "اكتشف أسرار العلوم والطبيعة.", price: 4500, icon: "🔬" }
+        ];
+
+        let cart = [];
+
+        function displayBooks(list = books) {
+            const container = document.getElementById("books-list");
+            container.innerHTML = "";
+
+            if (list.length === 0) {
+                container.innerHTML = "<p>لم يتم العثور على كتب.</p>";
+                return;
+            }
+
+            list.forEach(book => {
+                container.innerHTML += `
+                    <article class="book">
+                        <div class="book-cover">${book.icon}</div>
+                        <h3>${book.title}</h3>
+                        <p>${book.description}</p>
+                        <div class="price">${book.price.toLocaleString("en-US")} جنيه</div>
+                        <button class="add-btn" onclick="addToCart(${book.id})">أضف إلى السلة</button>
+                    </article>`;
+            });
+        }
+
+        function searchBooks() {
+            const query = document.getElementById("search").value.trim().toLowerCase();
+            const filtered = books.filter(book => book.title.toLowerCase().includes(query));
+            displayBooks(filtered);
+        }
+
+        function addToCart(id) {
+            const book = books.find(item => item.id === id);
+            const existing = cart.find(item => item.id === id);
+
+            if (existing) existing.quantity++;
+            else cart.push({ ...book, quantity: 1 });
+
+            displayCart();
+        }
+
+        function removeFromCart(id) {
+            cart = cart.filter(item => item.id !== id);
+            displayCart();
+        }
+
+        function displayCart() {
+            const container = document.getElementById("cart-items");
+            const totalElement = document.getElementById("total");
+
+            if (cart.length === 0) {
+                container.innerHTML = '<p class="empty">السلة فارغة حالياً.</p>';
+                totalElement.textContent = "0";
+                return;
+            }
+
+            container.innerHTML = "";
+            let total = 0;
+
+            cart.forEach(item => {
+                const itemTotal = item.price * item.quantity;
+                total += itemTotal;
+                container.innerHTML += `
+                    <div class="cart-item">
+                        <span>${item.title} × ${item.quantity} — ${itemTotal.toLocaleString("en-US")} جنيه</span>
+                        <button class="remove-btn" onclick="removeFromCart(${item.id})">حذف</button>
+                    </div>`;
+            });
+
+            totalElement.textContent = total.toLocaleString("en-US");
+        }
+
+        function orderBooks() {
+            if (cart.length === 0) {
+                alert("أضف كتاباً واحداً على الأقل إلى السلة أولاً.");
+                return;
+            }
+
+            // غيّر الرقم إلى رقم واتساب الخاص بك، مع رمز الدولة دون + أو مسافات
+            const phone = "249XXXXXXXXX";
+
+            const items = cart.map(item =>
+                `- ${item.title} × ${item.quantity} = ${(item.price * item.quantity).toLocaleString("en-US")} جنيه`
+            ).join("\n");
+
+            const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+            const message = `السلام عليكم، أريد طلب الكتب التالية:\n${items}\nالإجمالي: ${total.toLocaleString("en-US")} جنيه`;
+            const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+
+            window.open(url, "_blank");
+        }
+
+        displayBooks();
+        displayCart();
+    </script>
+</body>
+</html>
